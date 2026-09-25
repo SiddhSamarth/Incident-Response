@@ -1,14 +1,14 @@
-# Enterprise Incident Response Framework & Phishing Handling Playbook
+# Phishing Incident Response Playbook (NIST SP 800-61r2 / SANS PICERL)
 
-A procedural incident response framework and operational playbook modeled after NIST SP 800-61r2 and SANS PICERL for detecting, analyzing, containing, and eradicating enterprise credential-harvesting phishing campaigns.
+A procedural incident handling playbook for triage, containment, and eradication of credential-harvesting phishing campaigns.
 
 ---
 
-## Overview
+## Scope & Purpose
 
-Phishing remains the primary initial access vector (MITRE ATT&CK `T1566`) across enterprise environments. A successful response depends not only on automated email gateway controls, but on disciplined, repeatable procedural playbooks that guide SOC analysts, incident responders, and system administrators through rapid triage, containment, and recovery.
-
-This repository documents an **end-to-end incident response framework** developed for a simulated enterprise-wide credential-harvesting attack. It outlines the end-to-end operational lifecycle from initial telemetry detection to user account isolation, firewall blocklisting, enterprise-wide inbox sweeping, and post-incident root-cause analysis.
+* **Threat Scenario:** Spear-phishing email targeting enterprise users with a fake authentication portal.
+* **Framework:** Structured around NIST SP 800-61r2 and SANS PICERL incident response phases (Preparation, Identification, Containment, Eradication, Recovery, Lessons Learned).
+* **Classification:** Procedural standard operating procedure (SOP) and analyst triage checklist rather than an automated software tool.
 
 ---
 
