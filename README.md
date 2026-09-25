@@ -1,186 +1,96 @@
-# Incident-Response
+# Enterprise Incident Response Framework & Phishing Handling Playbook
 
-## Objective:
+A procedural incident response framework and operational playbook modeled after NIST SP 800-61r2 and SANS PICERL for detecting, analyzing, containing, and eradicating enterprise credential-harvesting phishing campaigns.
 
-Conduct an immersive simulated phishing attack to evaluate the organization's resilience to phishing threats, measure user awareness, and assess the effectiveness of incident response capabilities. The project aims to identify areas for improvement in security awareness training, incident detection, analysis, and response.
+---
 
-## Scenario:
-Simulate a targeted phishing attack where employees receive deceptive emails appearing to be urgent messages from the IT department. The emails request users to verify their login credentials on a fake portal due to a purported security upgrade. The simulated attack will employ sophisticated phishing techniques to gauge the organization's ability to detect and respond effectively.
+## Overview
 
-## 1. Planning:
+Phishing remains the primary initial access vector (MITRE ATT&CK `T1566`) across enterprise environments. A successful response depends not only on automated email gateway controls, but on disciplined, repeatable procedural playbooks that guide SOC analysts, incident responders, and system administrators through rapid triage, containment, and recovery.
 
-**Scope:**
+This repository documents an **end-to-end incident response framework** developed for a simulated enterprise-wide credential-harvesting attack. It outlines the end-to-end operational lifecycle from initial telemetry detection to user account isolation, firewall blocklisting, enterprise-wide inbox sweeping, and post-incident root-cause analysis.
 
-Target a cross-section of employees, including different departments and hierarchical levels.
+---
 
+## Scenario Architecture
 
-**Communication:**
+* **Threat Vector:** Spear-phishing email masquerading as an urgent mandatory security notification from corporate IT.
+* **Malicious Objective:** Credential harvesting via an external lookalike authentication portal.
+* **Scope:** Multi-department cross-section to evaluate security awareness, reporting latency, and technical triage efficiency.
 
-Notify stakeholders, ensuring they are aware of the simulated phishing attack and its role within a comprehensive security awareness initiative.
+---
 
-## 2. Preparation:
+## The 6-Phase Incident Handling Lifecycle
 
-**Email Content:**
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│ 1. PREPARATION   │ ──> │ 2. IDENTIFICATION│ ──> │ 3. CONTAINMENT   │
+│  - Gateway rules │     │  - SIEM alerts   │     │  - Mail quarantine
+│  - User training │     │  - Header triage │     │  - Host isolation│
+└──────────────────┘     └──────────────────┘     └─────────┬────────┘
+                                                            │
+┌──────────────────┐     ┌──────────────────┐               │
+│6. LESSONS LEARNED│ <── │  5. RECOVERY     │ <── ┌─────────▼────────┐
+│  - Root cause rep│     │  - Cred resets   │     │ 4. ERADICATION   │
+│  - Policy tuning │     │  - Host unfreeze │     │  - Mailbox sweep │
+└──────────────────┘     └──────────────────┘     │  - C2 blocklist  │
+                                                  └──────────────────┘
+```
 
-Develop convincing phishing emails with persuasive content, realistic sender names, and compelling subject lines.
+### Phase 1: Preparation
+* Implementation of SPF, DKIM, and DMARC enforcement records on mail transfer agents (MTAs).
+* Pre-configured Mail Gateway quarantine rules and SIEM detection correlation queries.
+* Pre-authorized emergency containment workflows and incident communication matrices.
 
-**Landing Page:**
+### Phase 2: Identification & Triage
+* **Automated Telemetry:** SIEM correlation alert triggering on multiple outbound connections to an unclassified domain within 60 seconds of inbound mail delivery.
+* **Header Forensics:** Triage of RFC 822 email headers (`Return-Path`, `Authentication-Results`, `X-Originating-IP`) to identify sender infrastructure and spoofing indicators.
+* **Landing Page Inspection:** Safe headless analysis of the fake login portal to extract C2 endpoints and credential-harvesting scripts.
 
-Create a realistic fake login page, mirroring the organization's genuine portal, to capture user interactions securely for analysis.
+### Phase 3: Containment
+* **Immediate Email Quarantine:** Global search and quarantine across Microsoft 365 / Google Workspace tenant to purge identical subject lines and message hashes.
+* **Network & Perimeter Isolation:** Egress firewall rule deployment blocking all outbound traffic to the attacker IP infrastructure and C2 domain.
+* **Host Isolation:** Endpoint Detection & Response (EDR) network containment of workstations belonging to users who interacted with the malicious link.
+* **Emergency Account Lockout:** Revocation of active refresh tokens and temporary lockout of credentials entered into the fake portal.
 
-## 3. Execution:
+### Phase 4: Eradication
+* **Organization-Wide Mailbox Sweep:** Automated script verification ensuring zero instances of the phishing payload persist in junk, trash, or forwarded folders.
+* **Cache & Credential Flushing:** Local browser cache purge, active session invalidation, and removal of any dropped artifacts.
 
-**Launch:**
+### Phase 5: Recovery
+* **Secure Credential Reset:** Multi-factor authentication (MFA) re-registration and password rotation via out-of-band verification.
+* **Controlled Endpoint Reconnection:** Phased release of isolated endpoints from EDR containment following clean malware/EDR scans.
+* **Continuous Monitoring:** Heightened logging and threshold alerts on affected user accounts for 14 days.
 
-Simultaneously send simulated phishing emails to the targeted users.
+### Phase 6: Post-Incident Activity & Lessons Learned
+* **Root-Cause Analysis (RCA):** Compilation of formal incident timeline, Mean Time to Detect (MTTD), and Mean Time to Remediate (MTTR).
+* **Defensive Tuning:** Updating mail filter regex rules, adding extracted IOCs to threat intelligence feeds, and refining employee training modules.
 
-**Monitoring:**
+---
 
-Utilize automated email security tools to monitor user interactions, link clicks, and login attempts.
+## Incident Response Checklist for SOC Analysts
 
-**Metrics:**
+| Stage | Action Item | Verification Mechanism |
+| :--- | :--- | :--- |
+| **Triage** | Confirm phishing payload and extract sender domain/IP | Header analysis & sandbox inspection |
+| **Scope** | Identify all internal recipients who received or opened email | Mail trace & gateway transaction logs |
+| **Contain** | Revoke active sessions for users who submitted credentials | Identity Provider (Azure AD / Okta) audit logs |
+| **Block** | Inject C2 IPs and domain into perimeter firewall & proxy blocklists | DNS sinkhole & proxy rule logs |
+| **Sweep** | Hard-delete all copies of the email from all tenant inboxes | Tenant PowerShell compliance search |
+| **Report** | Generate incident report with MITRE ATT&CK technique mapping | SOC ticketing system / Wiki |
 
-Capture metrics such as click rates, login attempts, and timestamps for comprehensive analysis.
+---
 
-## 4. Incident Detection:
+## Project Status & Methodology
 
-**Automated Detection:**
+* **Project Type:** Procedural Security Framework & Operational Playbook.
+* **Implementation Note:** This repository serves as a structured operational guide and procedural blueprint for enterprise SOC teams. It does not contain automated executable scripts or production SIEM API connectors.
 
-Utilize SIEM tools and email security gateways to automatically detect patterns indicative of a phishing attack.
+---
 
-**Manual Review:**
+## Author & Links
 
-Conduct manual reviews of logs and alerts to identify potential indicators of the phishing attack.
-
-## 5. Incident Analysis:
-
-**Phishing Analysis:**
-
-Analyze the content of the phishing emails, examining sender addresses, subject lines, and message content.
-
-**User Behavior Analysis:**
-
-Investigate user interactions and responses to identify common behaviors and patterns.
-
-**Landing Page Analysis:**
-
-
-Examine the fake login page to understand potential risks and gather intelligence on the attack.
-
-## 6. Incident Containment and Eradication:
-
-**Containment Measures:**
-
-**Immediate Email Quarantine:**
-
-Quarantine the simulated phishing email across the organization using email security controls.
-
-**Network Isolation:**
-
-Isolate affected user systems from the network to prevent further communication with the simulated phishing infrastructure.
-
-**Blocking Malicious IPs:**
-
-Block access to the IP addresses associated with the fake login page using firewall rules.
-
-**Temporary Account Lockouts:**
-
-Temporarily lock out affected user accounts to prevent unauthorized access during the containment phase.
-
-**Temporary Service Disruptions:**
-
-Temporarily disrupt non-essential services to minimize the potential impact and facilitate incident response efforts.
-
-**Eradication Steps:**
-
-**Email Sweep:**
-
-Conduct an organization-wide sweep to ensure the removal of any residual phishing emails in user inboxes.
-
-**Malicious File Removal:**
-
-Use endpoint protection tools to identify and remove any malicious files or artifacts associated with the simulated phishing attack.
-
-**Password Resets:**
-
-Initiate organization-wide password resets for affected users to render compromised credentials invalid.
-
-**System Reimaging:**
-
-Consider reimaging affected systems, reinstalling the operating system to ensure complete eradication of potential malware or backdoors.
-
-**Post-Incident Scan:**
-
-Perform thorough system scans using updated antivirus and antimalware tools to detect and eliminate any lingering threats.
-
-## 7. User Communication:
-
-**Communication Plan:**
-
-**Timely Notifications:**
-
-Immediately send notifications to affected users via email, detailing the incident, its nature, and the actions taken to mitigate risks.
-
-**Password Reset Instructions:**
-
-Provide clear, step-by-step instructions on how affected users can reset their passwords securely through a designated portal.
-
-**Recognizing Future Attacks:**
-
-Distribute educational materials outlining common phishing indicators and techniques, empowering users to recognize and report potential threats.
-
-**Contact Points for Questions:**
-
-Establish specific contact points within the helpdesk or security team for users to seek clarification or report additional concerns.
-
-**Follow-up Training Announcement:**
-
-Publicize upcoming mandatory training sessions focused on reinforcing security awareness, phishing detection, and incident reporting.
-
-## 8. Post-Incident Review:
-
-**Lessons Learned and Continuous Improvement:**
-
-**Root Cause Analysis:**
-
-Conduct an in-depth root cause analysis to identify systemic weaknesses, human factors, and technological shortcomings that contributed to the success of the simulated phishing attack.
-
-**Effectiveness Evaluation:**
-
-Evaluate the effectiveness of containment and eradication measures through metrics such as time to detection, time to containment, and impact mitigation.
-
-**Feedback Collection:**
-
-Gather feedback from incident responders, affected users, and stakeholders to understand the user experience, organizational response, and areas for improvement.
-
-**Documentation Update:**
-
-Update incident response documentation, including playbooks and response plans, based on the lessons learned, ensuring continual improvement and enhanced readiness for future incidents.
-
-## 9. Reporting:
-
-**Generate Report:**
-
-Prepare a comprehensive report detailing the results of the simulated phishing attack and the incident response efforts.
-
-**Key Findings:**
-
-Include key findings, success rates, incident response effectiveness, areas for improvement, and detailed recommendations.
-
-**Presentation:**
-
-Present the report to stakeholders, emphasizing the importance of continuous improvement in incident response and security awareness.
-
-## 10. Follow-up Training:
-
-**Scheduled Sessions:**
-
-Plan periodic follow-up training sessions to reinforce security awareness concepts.
-
-**Continuous Improvement:**
-
-Incorporate lessons learned from the simulated phishing attack and incident response into ongoing security training programs.
-
-**Feedback Loop:**
-
-Establish a feedback loop to continuously enhance incident response capabilities.
+* **Author:** Siddh Samarth
+* **GitHub:** [@SiddhSamarth](https://github.com/SiddhSamarth)
+* **Portfolio:** [siddhsamarth.in](https://siddhsamarth.in)
+* **LinkedIn:** [samarthsiddh](https://www.linkedin.com/in/siddhsamarth/)
